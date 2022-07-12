@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.js"></script>
+  <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+  <title>Nation Practice</title>
+  <!-- favicon -->
+  <link rel="icon" type="image/x-icon" href="./assets/images/taiwan.png">
+  <!-- CSS -->
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/bootstrap-reboot.css">
+  <!-- google font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+  <!-- google font -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400;500;600;700;900&display=swap" rel="stylesheet">	
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+  
+</head>
+<body>
+  <div id="app">
+    <!-- <div class="web_top" id="top"></div> -->
+    <section class="section_block section_title">
+      <div class="container">
+        <div class="row">
+          <div class="search_block col-10">
+            <input 
+              class="search_block-input"
+              type="text" 
+              v-model.lazy="search" 
+              :placeholder="searchPlaceholder" 
+            >
+            <button @click="search_btn" class="search_block-btn">搜尋</button>
+          </div>
+          <div class="sort_block col-2">
+            <select 
+              id="nameSort" 
+              class="sort_block-select" 
+              v-model="selectVal" 
+              @change="sort_list(listData)">
+              <option v-for="item in selectList" :value="item.value" >{{item.item}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section_block section_content">
+      <div class="container">
+        <div class="section_content-card">
+          <ul class="section_content-list lis-n" >
+            <li class="section_content-item" v-for="item in listData">
+              <div class="img_div img_flag">
+                <img :src="item.flag" :alt="item.name">
+              </div>
+              <div class="info">
+                <div class="info-block info-name ">
+                  <div class="title ">
+                    <h2 class="txt txt-head4">名稱</h2>
+                  </div>
+                  <div class="content ">
+                    <h3 class="txt txt-head4">{{item.name}}</h3>
+                  </div>
+                </div>
+                <div class="info-block info-cca2 ">
+                  <div class="title ">
+                    <h2 class="txt txt-head4">代碼(二碼)</h2>
+                  </div>
+                  <div class="content col-8">
+                    <h3 class="txt txt-head4">{{item.cca2}}</h3>
+                  </div>
+                </div>
+                <div class="info-block info-cca3 ">
+                  <div class="title ">
+                    <h2 class="txt txt-head4">國家代碼(三碼)</h2>
+                  </div>
+                  <div class="content ">
+                    <h3 class="txt txt-head4">{{item.cca3}}</h3>
+                  </div>
+                </div>
+                <div class="info-block info-nativeName ">
+                  <div class="title ">
+                    <h2 class="txt txt-head4">母語名稱</h2>
+                  </div>
+                  <div class="content ">
+                    <h3 class="txt txt-head4">{{item.nativeName}}</h3>
+                  </div>
+                </div>
+                <div class="info-block info-altSpellings ">
+                  <div class="title">
+                    <h2 class="txt txt-head4">替代國家名稱</h2>
+                  </div>
+                  <div class="content ">
+                    <h3 class="txt txt-head4" v-for="spe_item in item.altSpellings">{{spe_item}}</h3>
+                  </div>
+                </div>
+                <div class="info-block info-idd ">
+                  <div class="title ">
+                    <h2 class="txt txt-head4">國際電話區號</h2>
+                  </div>
+                  <div class="content ">
+                    <h3 class="txt txt-head" v-for="idd_item in idd_filter(item.idd)">{{idd_item}}</h3>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <nav aria-label="pagination" v-if="pageItem.currentPage!=0">
+      <div class="container">
+        <ul class="pagination_list lis-n">
+          <!-- 前一頁 -->
+          <li class="pagination_item" :class="{'disabled':!pageItem.hasPage}">
+            <a
+              class="pagination_link"
+              href="#"
+              aria-label="Previous"
+              @click.prevent="toPage(Number(pageItem.currentPage)-1)"
+            >
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          <li class="pagination_item" v-for="i in pageItem.pageCurrent" :key="i"
+          :class="{'active':pageItem.currentPage===i}">
+            <a class="pagination_link" href="#" @click.prevent="toPage(i)">{{i}}</a>
+          </li>
+          <li class="pagination_item" v-if="pageItem.pageTagHasNext">
+            <a href="#" 
+            class="pagination_link" 
+            @click.prevent="toPage((pageItem.currentPageTag+1)*pageItem.showPage)">...</a>
+          </li>
+          <li class="pagination_item" :class="{'disabled':!pageItem.hasNext}">
+            <a
+              class="pagination_link"
+              href="#"
+              aria-label="Next"
+              @click.prevent="toPage(Number(pageItem.currentPage)+1)"
+            >
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <script>
+    new Vue({
+      el:'#app',
+      data(){
+        return {
+          data:[],
+          filterData:[],
+          listData:[],
+          search:'',
+          searchPlaceholder:"請輸入國家名稱",
+          selectVal : 'positive',
+          selectList:[
+            { value: 'positive',
+              item: '正序'
+            }, 
+            { value: 'negative',
+              item: '倒序'
+            },
+          ],
+          spotsData: [],
+          pageItem: {
+            pageTotal: 0,
+            currentPage: 0,
+            hasPage: true,
+            hasNext: false,
+            showPage: 25,
+            pageCurrent: [],
+            currentPageTag: 1,
+            PageTagTotal: 0,
+            pageTagHasPre: false,
+            pageTagHasNext: false,
+          },
+          scrollTop: "",
+        }
+      },
+      mounted () {
+        axios
+          .get('https://restcountries.com/v3.1/all')
+          .then(response => {
+            //push原資料在data陣列
+            this.data.push(...response.data);
+            // console.log(response.data);
+            //篩選過我們需要的資料push在filterData跟listData陣列裡
+            this.filter_data();
+            //將listData排序過
+            this.filterData.sort(this.sort_name);
+            this.sort_list(this.listData);
+            //顯示頁碼
+            // this.pagination(this.listData, 1);
+            window.addEventListener("scroll", this.handleScroll);
+          }).catch(function (error) { 
+            console.log(error);
+          });
+      },
+      methods: {
+        //篩選過我們需要的資料push在filterData跟listData陣列裡
+        filter_data(){
+          this.data.map((value, index)=>{
+            this.filterData.push({
+              name: value.name.official,
+              flag: value.flags.png,
+              cca2: value.cca2,
+              cca3: value.cca3,
+              nativeName: value.name.nativeName ? Object.keys(value.name?.nativeName)[0]: value.name.official,
+              altSpellings: value.altSpellings,
+              idd: value.idd,
+            })
+            this.listData.push({
+              name: value.name.official,
+              flag: value.flags.png,
+              cca2: value.cca2,
+              cca3: value.cca3,
+              nativeName: value.name.nativeName ? Object.keys(value.name?.nativeName)[0]: value.name.official,
+              altSpellings: value.altSpellings,
+              idd: value.idd,
+            })
+          })
+        },
+        //判斷idd值是否有空值
+        idd_filter(idd){
+          let root = idd.root;
+          let newIdd = [];
+          //如果idd.suffixes為空值
+          if( idd.suffixes !== undefined && Object.keys(idd.suffixes)){
+            idd.suffixes.forEach(value => {
+              newIdd.push(root+value);
+              // console.log(value);
+            });
+          }
+          return newIdd;
+        },
+        //搜尋功能
+        search_btn(){
+          //原陣列filterData來做比對用,比對完資料放到listData
+          this.listData = this.filterData.filter(value => {
+            let name = value.name.toLowerCase();
+            return name.includes(this.search.toLowerCase());
+          //進行排序
+          // }).sort_list(this.listData);
+          });
+          // console.log(this.listData);
+          sort_list(this.listData);
+        },
+        //排序功能function
+        sort_name( a, b ){
+          //判斷當前的排序為正序或倒序
+          //如果為正序,a>b為1,所以postiveSort為1反之為-1
+          let postiveSort = this.selectVal === "postive" ? 1 : -1;
+          //如果為倒序,a<b為1,所以negativeSort為1反之為-1
+          let negativeSort = this.selectVal === "negative" ? 1 : -1;
+          // console.log('in sort_name');
+          if ( a.name[0].toLowerCase() > b.name[0].toLowerCase())return postiveSort;
+          if ( a.name[0].toLowerCase() < b.name[0].toLowerCase())return negativeSort;
+          return 0;
+        },
+        //呼叫排序,傳入陣列
+        sort_list(array){
+          this.listData = array.sort(this.sort_name);
+        },
+        pagination(Data, page) {
+          //準備裝分頁完資料的空陣列
+          this.listData = [];
+          //統計所有資料數量
+          const dataTotal = Data.length;
+          //每頁顯示得數量
+          const perPage = 25;
+          //最多顯示的頁碼
+          const showPage = 10;
+          //總共有幾頁
+          const pageTotal = Math.ceil(dataTotal / perPage);
+          //當前頁面
+          let currentPage = page;
+          if (currentPage > pageTotal) {
+            currentPage = pageTotal;
+          }
+          const minData = currentPage * perPage - perPage + 1;
+          const maxData = currentPage * perPage;
+          Data.forEach((item, index) => {
+            const num = index + 1;
+            if (num >= minData && num <= maxData) {
+              this.listData.push(item);
+              // this.sort_list(this.listData);
+            }
+          });
+          //分頁一頁顯示十筆頁碼
+          this.pageItem.pageCurrent = [];
+          const PageTagTotal = Math.ceil(pageTotal / showPage);
+          const currentPageTag = Math.ceil(page / showPage);
+          let pageCurrentItem = [];
+
+          const minPage = currentPageTag * showPage - showPage + 1;
+          const maxPage = currentPageTag * showPage;
+
+          for (let i = 1; i < pageTotal + 1; i++) {
+            if (i >= minPage && i <= maxPage) {
+              pageCurrentItem.push(i);
+            }
+          }
+          this.pageItem = {
+            pageTotal,
+            currentPage,
+            hasPage: currentPage > 1,
+            hasNext: currentPage < pageTotal,
+            showPage: showPage,
+            pageCurrent: Array.from(pageCurrentItem),
+            currentPageTag,
+            PageTagTotal,
+            pageTagHasPre: currentPageTag > 1,
+            pageTagHasNext: currentPageTag < PageTagTotal,
+          };
+        },
+        toPage(page) {
+          this.pagination(this.filterData, page);
+          this.goTop();
+        },
+        handleScroll() {
+          this.scrollTop =
+            window.pageYOffset ||
+            document.documentElement.scrollTop ||
+            document.body.scrollTop;
+            // console.log(this.scrollTop);
+        },
+        goTop() {
+            let timer = null,
+                _that = this;
+            timer = requestAnimationFrame(function fn() {
+                if (_that.scrollTop > 0) {
+                    _that.scrollTop -= 500;
+                    document.documentElement.scrollTop = _that.scrollTop;
+                    timer = requestAnimationFrame(fn);
+                } else {
+                    cancelAnimationFrame(timer);
+                }
+            });
+        }
+      },
+    });
+  </script>
+</body>
+
+</html>
