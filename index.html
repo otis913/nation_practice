@@ -13,7 +13,7 @@
   <link rel="icon" type="image/x-icon" href="./assets/images/taiwan.png">
   <!-- CSS -->
   <link rel="stylesheet" href="./assets/css/style.css">
-  <link rel="stylesheet" href="./assets/css/bootstrap-reboot.css">
+  <!-- <link rel="stylesheet" href="./assets/css/bootstrap-reboot.css"> -->
   <!-- google font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,6 @@
 </head>
 <body>
   <div id="app">
-    <!-- <div class="web_top" id="top"></div> -->
     <section class="section_block section_title">
       <div class="container">
         <div class="row">
@@ -56,7 +55,7 @@
       <div class="container">
         <div class="section_content-card">
           <ul class="section_content-list lis-n" >
-            <li class="section_content-item" v-for="item in listData">
+            <li class="section_content-item" v-for="item in listData" :key="item.name" v-if="listData.length>0">
               <div class="img_div img_flag">
                 <img :src="item.flag" :alt="item.name">
               </div>
@@ -185,6 +184,7 @@
             pageTagHasNext: false,
           },
           scrollTop: "",
+          
         }
       },
       mounted () {
@@ -197,10 +197,17 @@
             //篩選過我們需要的資料push在filterData跟listData陣列裡
             this.filter_data();
             //將listData排序過
-            this.filterData.sort(this.sort_name);
-            this.sort_list(this.listData);
+            // this.filterData.sort(this.sort_name);
+            // this.sort_list(this.listData);
+            this.filterData.sort((a,b)=>{
+              return  a.name.charCodeAt(0) - b.name.charCodeAt(0)
+            })
+            this.listData.sort((a,b)=>{
+              return  a.name.charCodeAt(0) - b.name.charCodeAt(0)
+            })
+            // setTimeout(this.sort_list(this.listData), 1000000);
             //顯示頁碼
-            // this.pagination(this.listData, 1);
+            this.pagination(this.listData, 1);
             window.addEventListener("scroll", this.handleScroll);
           }).catch(function (error) { 
             console.log(error);
@@ -229,6 +236,11 @@
               idd: value.idd,
             })
           })
+          // this.sort_list(this.filterData);
+          // this.sort_list(this.listData);
+          // 
+          // this.filterData.sort(this.sort_name);
+          // this.listData.sort(this.sort_name);
         },
         //判斷idd值是否有空值
         idd_filter(idd){
@@ -249,30 +261,31 @@
           this.listData = this.filterData.filter(value => {
             let name = value.name.toLowerCase();
             return name.includes(this.search.toLowerCase());
-          //進行排序
-          // }).sort_list(this.listData);
           });
           // console.log(this.listData);
+          //進行排序
           sort_list(this.listData);
         },
         //排序功能function
         sort_name( a, b ){
           //判斷當前的排序為正序或倒序
           //如果為正序,a>b為1,所以postiveSort為1反之為-1
-          let postiveSort = this.selectVal === "postive" ? 1 : -1;
+          let postiveSort = this.selectVal === "postive" ? -1 : 1;
           //如果為倒序,a<b為1,所以negativeSort為1反之為-1
           let negativeSort = this.selectVal === "negative" ? 1 : -1;
-          // console.log('in sort_name');
-          if ( a.name[0].toLowerCase() > b.name[0].toLowerCase())return postiveSort;
-          if ( a.name[0].toLowerCase() < b.name[0].toLowerCase())return negativeSort;
+          // if ( a.name[0].toLowerCase() > b.name[0].toLowerCase())return postiveSort;
+          // if ( a.name[0].toLowerCase() < b.name[0].toLowerCase())return negativeSort;   
+          if ( a.name.charCodeAt(0) - b.name.charCodeAt(0) )return postiveSort;
+          if ( b.name.charCodeAt(0) - a.name.charCodeAt(0) )return negativeSort;
           return 0;
         },
         //呼叫排序,傳入陣列
         sort_list(array){
-          this.listData = array.sort(this.sort_name);
+          // this.listData = [];
+          array.sort(this.sort_name);
+          // this.listData = this.filter_data.sort(this.sort_name);
         },
         pagination(Data, page) {
-          //準備裝分頁完資料的空陣列
           this.listData = [];
           //統計所有資料數量
           const dataTotal = Data.length;
@@ -289,13 +302,16 @@
           }
           const minData = currentPage * perPage - perPage + 1;
           const maxData = currentPage * perPage;
-          Data.forEach((item, index) => {
-            const num = index + 1;
-            if (num >= minData && num <= maxData) {
-              this.listData.push(item);
-              // this.sort_list(this.listData);
-            }
-          });
+
+          this.listData = this.filterData.slice(minData, maxData);
+          this.listData.sort(this.sort_name);
+          // Data.forEach((item, index) => {
+          //   const num = index + 1;
+          //   if (num >= minData && num <= maxData) {
+          //     // this.listData.push(item);
+          //   }
+          // });
+
           //分頁一頁顯示十筆頁碼
           this.pageItem.pageCurrent = [];
           const PageTagTotal = Math.ceil(pageTotal / showPage);
