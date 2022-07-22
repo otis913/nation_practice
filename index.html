@@ -200,10 +200,10 @@
             // this.filterData.sort(this.sort_name);
             // this.sort_list(this.listData);
             this.filterData.sort((a,b)=>{
-              return  a.name.charCodeAt(0) - b.name.charCodeAt(0)
+              return a.name.charCodeAt(0) - b.name.charCodeAt(0)
             })
             this.listData.sort((a,b)=>{
-              return  a.name.charCodeAt(0) - b.name.charCodeAt(0)
+              return a.name.charCodeAt(0) - b.name.charCodeAt(0)
             })
             // setTimeout(this.sort_list(this.listData), 1000000);
             //顯示頁碼
@@ -264,19 +264,17 @@
           });
           // console.log(this.listData);
           //進行排序
-          sort_list(this.listData);
+          this.listData.sort(this.sort_name);
         },
         //排序功能function
         sort_name( a, b ){
           //判斷當前的排序為正序或倒序
-          //如果為正序,a>b為1,所以postiveSort為1反之為-1
-          let postiveSort = this.selectVal === "postive" ? -1 : 1;
-          //如果為倒序,a<b為1,所以negativeSort為1反之為-1
-          let negativeSort = this.selectVal === "negative" ? 1 : -1;
+          let postiveSort = this.selectVal === "postive" ? 1 : -1;
+          let negativeSort = this.selectVal === "negative" ? -1 : 1;
           // if ( a.name[0].toLowerCase() > b.name[0].toLowerCase())return postiveSort;
           // if ( a.name[0].toLowerCase() < b.name[0].toLowerCase())return negativeSort;   
-          if ( a.name.charCodeAt(0) - b.name.charCodeAt(0) )return postiveSort;
-          if ( b.name.charCodeAt(0) - a.name.charCodeAt(0) )return negativeSort;
+          if ( a.name.charCodeAt(0) - b.name.charCodeAt(0) )return negativeSort;
+          if ( b.name.charCodeAt(0) - a.name.charCodeAt(0) )return postiveSort;
           return 0;
         },
         //呼叫排序,傳入陣列
